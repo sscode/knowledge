@@ -1,5 +1,6 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import { WIKI_DIR, withWriteLock, withWriteLockStream } from "./wiki";
+import { formatSelfHealResult, runWikiSelfHeal } from "./wiki-self-heal";
 
 type AgentOpts = {
   prompt: string;
@@ -7,6 +8,10 @@ type AgentOpts = {
   maxTurns: number;
   maxBudgetUsd: number;
 };
+
+type AgentStreamEvent =
+  | { type: "progress"; text: string }
+  | { type: "result"; text: string };
 
 async function runAgent(opts: AgentOpts): Promise<string> {
   let result = "";
@@ -34,7 +39,7 @@ async function runAgent(opts: AgentOpts): Promise<string> {
 
 async function* streamAgent(
   opts: AgentOpts
-): AsyncGenerator<{ type: "progress"; text: string } | { type: "result"; text: string }> {
+): AsyncGenerator<AgentStreamEvent> {
   let result = "";
   for await (const message of query({
     prompt: opts.prompt,
@@ -90,13 +95,38 @@ export async function runIngestAgent(
   sourcePath: string,
   description: string
 ): Promise<string> {
-  return withWriteLock(() => runAgent(ingestAgentOpts(sourcePath, description)));
+  return withWriteLock(async () => {
+    const ingestResult = await runAgent(ingestAgentOpts(sourcePath, description));
+    const selfHealResult = await runWikiSelfHeal();
+    return `${ingestResult}\n\n${formatSelfHealResult(selfHealResult)}`;
+  });
 }
 
-export function streamIngestAgent(sourcePath: string, description: string) {
-  return withWriteLockStream(() =>
-    streamAgent(ingestAgentOpts(sourcePath, description))
-  );
+export function streamIngestAgent(
+  sourcePath: string,
+  description: string
+): AsyncGenerator<AgentStreamEvent> {
+  return withWriteLockStream(async function* () {
+    let ingestResult = "";
+
+    for await (const event of streamAgent(
+      ingestAgentOpts(sourcePath, description)
+    )) {
+      if (event.type === "result") {
+        ingestResult = event.text;
+        continue;
+      }
+
+      yield event;
+    }
+
+    yield { type: "progress", text: "Self-healing wiki structure..." };
+    const selfHealResult = await runWikiSelfHeal();
+    yield {
+      type: "result",
+      text: `${ingestResult}\n\n${formatSelfHealResult(selfHealResult)}`,
+    };
+  });
 }
 
 function queryAgentOpts(question: string): AgentOpts {

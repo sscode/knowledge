@@ -1,21 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { fetchWithAdminToken } from "../admin-fetch";
 
 type Mode = "text" | "file";
 
+const ACCEPTED_FILE_TYPES = ".txt,.md,.csv,.json,.docx,.pdf";
+const ACCEPTED_EXTENSIONS = new Set([
+  "txt",
+  "md",
+  "csv",
+  "json",
+  "docx",
+  "pdf",
+]);
+
 export default function IngestPage() {
   const [mode, setMode] = useState<Mode>("text");
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function isAcceptedFile(nextFile: File): boolean {
+    const ext = nextFile.name.split(".").pop()?.toLowerCase();
+    return !!ext && ACCEPTED_EXTENSIONS.has(ext);
+  }
+
+  function selectFile(nextFile: File | null) {
+    if (nextFile && !isAcceptedFile(nextFile)) {
+      setFile(null);
+      setError("Unsupported file type");
+      return;
+    }
+
+    setFile(nextFile);
+    setError(null);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLLabelElement>) {
+    e.preventDefault();
+    setDragging(false);
+    selectFile(e.dataTransfer.files[0] || null);
+  }
+
+  function clearFile() {
+    selectFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -126,15 +165,47 @@ export default function IngestPage() {
             />
           </>
         ) : (
-          <div className="border-2 border-dashed border-neutral-700 rounded p-8 text-center">
+          <div className="space-y-3">
             <input
+              ref={fileInputRef}
+              id="source-file"
               type="file"
-              accept=".txt,.md,.csv,.json,.docx"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="mx-auto"
+              accept={ACCEPTED_FILE_TYPES}
+              onChange={(e) => selectFile(e.target.files?.[0] || null)}
+              className="sr-only"
             />
+            <label
+              htmlFor="source-file"
+              onDragOver={(e) => e.preventDefault()}
+              onDragEnter={() => setDragging(true)}
+              onDragLeave={() => setDragging(false)}
+              onDrop={handleDrop}
+              className={`block cursor-pointer rounded border-2 border-dashed p-8 text-center transition ${
+                dragging
+                  ? "border-white bg-neutral-900"
+                  : "border-neutral-700 bg-neutral-950 hover:border-neutral-500 hover:bg-neutral-900"
+              }`}
+            >
+              <span className="block font-medium text-white">
+                Drop a file here or click to browse
+              </span>
+              <span className="mt-2 block text-sm text-neutral-400">
+                Supports TXT, Markdown, CSV, JSON, DOCX, and PDF
+              </span>
+            </label>
             {file && (
-              <p className="mt-2 text-neutral-400">Selected: {file.name}</p>
+              <div className="flex items-center justify-between gap-3 rounded border border-neutral-800 bg-neutral-900 px-3 py-2">
+                <p className="min-w-0 truncate text-sm text-neutral-300">
+                  Selected: {file.name}
+                </p>
+                <button
+                  type="button"
+                  onClick={clearFile}
+                  className="shrink-0 text-sm text-neutral-400 hover:text-white"
+                >
+                  Clear
+                </button>
+              </div>
             )}
           </div>
         )}

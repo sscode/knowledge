@@ -5,11 +5,20 @@ A local/team knowledge-base app built with Next.js. It stores raw source materia
 ## What It Does
 
 - Query the wiki from `/`
-- Ingest pasted text or uploaded `.txt`, `.md`, `.csv`, `.json`, and `.docx` files from `/ingest`
+- Ingest pasted text or uploaded `.txt`, `.md`, `.csv`, `.json`, `.docx`, and `.pdf` files from `/ingest`
 - Ingest AgentMail messages through `/api/webhook`
-- Run a wiki lint/repair agent from the top navigation
+- View generated wiki pages from `/wiki`
+- Manage page Markdown and inspect original source text from `/manage`
+- Automatically self-heal safe structural wiki issues after ingest
+- Run a deeper AI wiki repair from the top navigation
 
 The wiki conventions live in `wiki/schema/AGENTS.md`.
+
+## Self-Healing
+
+After every ingest, the app runs a deterministic self-heal pass. It safely repairs structural drift such as missing index entries, stale index entries, and missing required section headings. It logs unresolved issues such as broken wikilinks and orphan pages to `wiki/log.md` for human review.
+
+The `Deep Repair` button still exists for ambiguous repairs that need the AI agent, such as contradictions or stale content.
 
 ## Setup
 

@@ -1,10 +1,13 @@
 import path from "path";
 import fs from "fs";
 import mammoth from "mammoth";
+import { extractText, getDocumentProxy } from "unpdf";
 import { WIKI_DIR } from "@/lib/wiki";
 import { streamIngestAgent } from "@/lib/agents";
 import { requireAdmin } from "@/lib/auth";
 import { agentStreamToSSE } from "@/lib/sse";
+
+export const runtime = "nodejs";
 
 function slugify(text: string): string {
   return text
@@ -12,6 +15,21 @@ function slugify(text: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 60);
+}
+
+async function extractPdfText(file: File): Promise<string> {
+  const buffer = new Uint8Array(await file.arrayBuffer());
+  const pdf = await getDocumentProxy(buffer);
+  const { totalPages, text } = await extractText(pdf, { mergePages: true });
+  const trimmedText = text.trim();
+
+  if (!trimmedText) {
+    throw new Error("PDF has no extractable text");
+  }
+
+  return `# ${file.name}\n\n_PDF text extracted from ${totalPages} page${
+    totalPages === 1 ? "" : "s"
+  }._\n\n${trimmedText}`;
 }
 
 export async function POST(req: Request) {
@@ -37,6 +55,8 @@ export async function POST(req: Request) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const result = await mammoth.extractRawText({ buffer });
         content = result.value;
+      } else if (ext === "pdf") {
+        content = await extractPdfText(file);
       } else if (["txt", "md", "csv", "json"].includes(ext)) {
         content = await file.text();
       } else {
@@ -47,7 +67,7 @@ export async function POST(req: Request) {
       }
 
       // Save extracted text as .md so the ingest agent can read it
-      const saveExt = ext === "docx" ? "md" : ext;
+      const saveExt = ["docx", "pdf"].includes(ext) ? "md" : ext;
       sourcePath = path.join(
         WIKI_DIR,
         "sources",

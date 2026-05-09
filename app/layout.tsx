@@ -30,6 +30,12 @@ export default function RootLayout({
           <Link href="/ingest" className="text-neutral-400 hover:text-white">
             Ingest
           </Link>
+          <Link href="/wiki" className="text-neutral-400 hover:text-white">
+            Wiki
+          </Link>
+          <Link href="/manage" className="text-neutral-400 hover:text-white">
+            Manage
+          </Link>
           <LintButton />
         </nav>
         <main className="flex-1 p-6">{children}</main>
