@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Knowledge
 
-## Getting Started
+A local/team knowledge-base app built with Next.js. It stores raw source material in `wiki/sources/`, asks Claude Agent SDK workers to maintain generated wiki pages in `wiki/pages/`, and lets users query the wiki from the browser.
 
-First, run the development server:
+## What It Does
+
+- Query the wiki from `/`
+- Ingest pasted text or uploaded `.txt`, `.md`, `.csv`, `.json`, and `.docx` files from `/ingest`
+- Ingest AgentMail messages through `/api/webhook`
+- Run a wiki lint/repair agent from the top navigation
+
+The wiki conventions live in `wiki/schema/AGENTS.md`.
+
+## Setup
 
 ```bash
+cp .env.example .env
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Required environment variables:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `ANTHROPIC_API_KEY`: used by the Claude Agent SDK
+- `AGENTMAIL_API_KEY`: used for email ingestion
+- `KB_ADMIN_TOKEN`: required in production to protect query, ingest, and lint endpoints
+- `AGENTMAIL_WEBHOOK_SECRET`: required in production to protect the webhook endpoint
 
-## Learn More
+In development, missing `KB_ADMIN_TOKEN` and `AGENTMAIL_WEBHOOK_SECRET` are allowed so local work stays simple. In production, the app returns an error if either secret is missing.
 
-To learn more about Next.js, take a look at the following resources:
+## Production Notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Set `KB_ADMIN_TOKEN` to a strong random value. The browser UI prompts for it after a `401` response and stores it in `localStorage` for future requests.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Configure AgentMail to call:
 
-## Deploy on Vercel
+```text
+https://your-domain.example/api/webhook?secret=YOUR_AGENTMAIL_WEBHOOK_SECRET
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+You can also send the webhook secret in either `x-agentmail-webhook-secret` or `x-kb-webhook-secret`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Checks
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+```
