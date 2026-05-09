@@ -9,6 +9,7 @@ A local/team knowledge-base app built with Next.js. It stores raw source materia
 - Ingest AgentMail messages through `/api/webhook`
 - View generated wiki pages from `/wiki`
 - Manage page Markdown and inspect original source text from `/manage`
+- Use the same knowledge-base capabilities from Discord through `/api/discord`
 - Automatically self-heal safe structural wiki issues after ingest
 - Run a deeper AI wiki repair from the top navigation
 
@@ -36,8 +37,46 @@ Required environment variables:
 - `AGENTMAIL_API_KEY`: used for email ingestion
 - `KB_ADMIN_TOKEN`: required in production to protect query, ingest, and lint endpoints
 - `AGENTMAIL_WEBHOOK_SECRET`: required in production to protect the webhook endpoint
+- `DISCORD_PUBLIC_KEY`: required for Discord interaction verification
+- `DISCORD_ALLOWED_GUILD_IDS`: optional comma-separated Discord guild allow-list
+- `DISCORD_ALLOWED_USER_IDS`: optional comma-separated Discord user allow-list
 
 In development, missing `KB_ADMIN_TOKEN` and `AGENTMAIL_WEBHOOK_SECRET` are allowed so local work stays simple. In production, the app returns an error if either secret is missing.
+
+## Discord Bot
+
+Set the Discord interaction endpoint URL to:
+
+```text
+https://your-domain.example/api/discord
+```
+
+The endpoint verifies Discord signatures using `DISCORD_PUBLIC_KEY`. Commands are handled as ephemeral responses.
+
+Natural-language command:
+
+- `/kb`
+
+Exact admin commands:
+
+- `/kb-admin ask`
+- `/kb-admin ingest`
+- `/kb-admin ingest-file`
+- `/kb-admin pages`
+- `/kb-admin page`
+- `/kb-admin source`
+- `/kb-admin save-page`
+- `/kb-admin delete-page`
+- `/kb-admin self-heal`
+- `/kb-admin deep-repair`
+
+To register the slash command, set `DISCORD_APP_ID` and `DISCORD_BOT_TOKEN`, optionally set `DISCORD_GUILD_ID` for guild-scoped development commands, then run:
+
+```bash
+npm run discord:commands
+```
+
+`/kb` accepts natural language and uses an AI intent router to choose the matching knowledge-base action. True non-command channel chat, where the bot responds to ordinary messages or mentions, requires a Discord Gateway worker with message-content intent; the same intent router can be reused there.
 
 ## Production Notes
 
