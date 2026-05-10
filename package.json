@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
+    "postbuild": "cp -R public .next/standalone/public && mkdir -p .next/standalone/.next && cp -R .next/static .next/standalone/.next/static",
     "start": "HOSTNAME=0.0.0.0 node .next/standalone/server.js",
     "lint": "eslint",
     "discord:commands": "node scripts/register-discord-commands.mjs"
