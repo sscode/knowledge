@@ -40,19 +40,43 @@ async function getWikiFiles(): Promise<WikiFile[]> {
     .map((file) => path.relative(WIKI_DIR, file))
     .sort((a, b) => a.localeCompare(b))
     .map((file) => ({
-      label: file,
+      label: formatFileLabel(file),
       path: file,
     }));
+}
+
+function titleCase(text: string): string {
+  return text
+    .replace(/\.md$/, "")
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function formatFileLabel(file: string): string {
+  const parts = file.split("/");
+  if (parts.length === 1) return titleCase(parts[0]);
+  return `${parts.slice(0, -1).join(" / ")} / ${titleCase(parts.at(-1) || "")}`;
 }
 
 function renderWikilinks(markdown: string, files: WikiFile[]): string {
   const pagePaths = new Set(files.map((file) => file.path));
 
-  return markdown.replace(/\[\[([a-z0-9-]+)\]\]/g, (match, pageName) => {
-    const pagePath = `pages/${pageName}.md`;
-    if (!pagePaths.has(pagePath)) return match;
-    return `[${pageName}](/wiki?file=${encodeURIComponent(pagePath)})`;
-  });
+  return markdown
+    .replace(/\[\[([a-z0-9-]+)\]\]/g, (match, pageName) => {
+      const pagePath = `pages/${pageName}.md`;
+      if (!pagePaths.has(pagePath)) return match;
+      return `[${pageName}](/wiki?file=${encodeURIComponent(pagePath)})`;
+    })
+    .replace(
+      /`?(wiki\/sources\/[^`\s)]+|sources\/[^`\s)]+)`?/g,
+      (match, sourcePath) => {
+        const normalizedPath = sourcePath.replace(/^wiki\//, "");
+        return `[${sourcePath}](/manage?source=${encodeURIComponent(
+          normalizedPath
+        )})`;
+      }
+    );
 }
 
 export default async function WikiPage({
@@ -72,21 +96,24 @@ export default async function WikiPage({
   const renderedMarkdown = renderWikilinks(markdown, files);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[18rem_1fr]">
-      <aside className="border border-neutral-800 rounded bg-neutral-950">
-        <div className="border-b border-neutral-800 px-4 py-3">
-          <h1 className="text-lg font-bold">Wiki</h1>
+    <div className="page-wrap">
+      <header className="mb-6">
+        <p className="page-kicker mb-2">browse</p>
+        <h1 className="page-title">Wiki</h1>
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-[18rem_1fr]">
+      <aside className="panel">
+        <div className="panel-header px-4 py-3">
+          <h2 className="text-sm font-bold">Files</h2>
         </div>
         <nav className="p-2">
           {files.map((file) => (
             <Link
               key={file.path}
               href={`/wiki?file=${encodeURIComponent(file.path)}`}
-              className={`block rounded px-3 py-2 text-sm ${
-                file.path === selectedPath
-                  ? "bg-white text-black"
-                  : "text-neutral-300 hover:bg-neutral-900 hover:text-white"
-              }`}
+              className="list-item block px-3 py-2 text-sm"
+              data-active={file.path === selectedPath}
             >
               {file.label}
             </Link>
@@ -94,16 +121,17 @@ export default async function WikiPage({
         </nav>
       </aside>
 
-      <article className="min-w-0 border border-neutral-800 rounded bg-neutral-950">
-        <div className="border-b border-neutral-800 px-4 py-3 text-sm text-neutral-400">
+      <article className="panel min-w-0">
+        <div className="panel-header px-4 py-3 text-sm muted-text">
           {selectedFile?.path || "No wiki files found"}
         </div>
-        <div className="prose prose-invert prose-sm max-w-none p-6">
+        <div className="markdown-body prose prose-invert prose-sm max-w-none p-6">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {renderedMarkdown}
           </ReactMarkdown>
         </div>
       </article>
+      </div>
     </div>
   );
 }

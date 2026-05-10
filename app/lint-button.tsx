@@ -26,23 +26,23 @@ export function LintButton() {
       <button
         onClick={handleLint}
         disabled={loading}
-        className="ml-auto text-neutral-400 hover:text-white disabled:opacity-50"
+        className="nav-link ml-auto rounded px-3 py-1.5 text-sm disabled:opacity-50"
       >
         {loading ? "Repairing..." : "Deep Repair"}
       </button>
       {result && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-6 z-50">
-          <div className="bg-neutral-900 border border-neutral-700 rounded p-6 max-w-2xl w-full max-h-[80vh] overflow-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-6">
+          <div className="panel max-h-[80vh] w-full max-w-2xl overflow-auto p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-bold">Deep Repair Report</h2>
               <button
                 onClick={() => setResult(null)}
-                className="text-neutral-400 hover:text-white"
+                className="ghost-button px-3 py-1.5 text-sm"
               >
                 Close
               </button>
             </div>
-            <pre className="whitespace-pre-wrap text-sm text-neutral-300">
+            <pre className="muted-text whitespace-pre-wrap text-sm">
               {result}
             </pre>
           </div>

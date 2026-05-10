@@ -1,7 +1,254 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+:root {
+  --bg: #050505;
+  --panel: #0b0b0b;
+  --panel-soft: #111;
+  --line: #2a2a2a;
+  --line-strong: #444;
+  --text: #f4f4f4;
+  --muted: #9a9a9a;
+  --dim: #666;
+  --danger: #fca5a5;
+  --danger-bg: #260b0b;
+  --danger-line: #7f1d1d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+}
+
 body {
-  background: #000;
-  color: #fff;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    var(--bg);
+  background-size: 28px 28px;
+  color: var(--text);
+}
+
+::selection {
+  background: var(--text);
+  color: var(--bg);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+label:focus-visible {
+  outline: 1px solid var(--text);
+  outline-offset: 3px;
+}
+
+.app-shell {
+  min-height: 100%;
+  background: rgba(0, 0, 0, 0.82);
+}
+
+.topbar {
+  border-bottom: 1px solid var(--line);
+  background: rgba(5, 5, 5, 0.92);
+  backdrop-filter: blur(10px);
+}
+
+.brand-mark {
+  border: 1px solid var(--line-strong);
+  background: var(--text);
+  color: var(--bg);
+}
+
+.nav-link {
+  border: 1px solid transparent;
+  color: var(--muted);
+  transition:
+    border-color 120ms ease,
+    color 120ms ease,
+    background-color 120ms ease;
+}
+
+.nav-link:hover {
+  border-color: var(--line);
+  background: var(--panel);
+  color: var(--text);
+}
+
+.nav-link[data-active="true"] {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--bg);
+}
+
+.page-wrap {
+  width: min(100%, 76rem);
+  margin-inline: auto;
+}
+
+.narrow-wrap {
+  width: min(100%, 44rem);
+  margin-inline: auto;
+}
+
+.page-kicker {
+  color: var(--dim);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.page-title {
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+}
+
+.panel-header {
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-soft);
+}
+
+.terminal-input {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #050505;
+  color: var(--text);
+}
+
+.terminal-input::placeholder {
+  color: var(--dim);
+}
+
+.terminal-input:focus {
+  border-color: var(--line-strong);
+}
+
+.terminal-button {
+  border: 1px solid var(--text);
+  border-radius: 4px;
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 700;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    opacity 120ms ease;
+}
+
+.terminal-button:hover:not(:disabled) {
+  background: transparent;
+  color: var(--text);
+}
+
+.terminal-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.ghost-button {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--muted);
+  transition:
+    border-color 120ms ease,
+    color 120ms ease,
+    background-color 120ms ease;
+}
+
+.ghost-button:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.ghost-button[data-active="true"] {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--bg);
+}
+
+.danger-panel {
+  border: 1px solid var(--danger-line);
+  border-radius: 4px;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.muted-text {
+  color: var(--muted);
+}
+
+.dim-text {
+  color: var(--dim);
+}
+
+.list-item {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--muted);
+  transition:
+    border-color 120ms ease,
+    color 120ms ease,
+    background-color 120ms ease;
+}
+
+.list-item:hover {
+  border-color: var(--line);
+  background: var(--panel-soft);
+  color: var(--text);
+}
+
+.list-item[data-active="true"] {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--bg);
+}
+
+.markdown-body {
+  color: var(--text);
+}
+
+.markdown-body :where(a) {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.markdown-body :where(code) {
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: #050505;
+  color: var(--text);
+  padding: 0.1rem 0.25rem;
+}
+
+.markdown-body :where(pre) {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #050505;
+}
+
+.markdown-body :where(table) {
+  display: block;
+  overflow-x: auto;
+}
+
+.markdown-body :where(th, td) {
+  border-color: var(--line);
 }

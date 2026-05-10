@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { fetchWithAdminToken } from "../admin-fetch";
 
-type Mode = "text" | "file";
+type Mode = "text" | "url" | "file";
 
 const ACCEPTED_FILE_TYPES = ".txt,.md,.csv,.json,.docx,.pdf";
 const ACCEPTED_EXTENSIONS = new Set([
@@ -21,6 +21,7 @@ export default function IngestPage() {
   const [mode, setMode] = useState<Mode>("text");
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
+  const [url, setUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -67,6 +68,8 @@ export default function IngestPage() {
     if (mode === "text") {
       formData.append("title", title);
       formData.append("text", text);
+    } else if (mode === "url") {
+      formData.append("url", url);
     } else if (file) {
       formData.append("file", file);
     }
@@ -104,6 +107,7 @@ export default function IngestPage() {
             setResult(event.text);
             setTitle("");
             setText("");
+            setUrl("");
             setFile(null);
           } else if (event.type === "error") {
             setError(event.text);
@@ -119,33 +123,40 @@ export default function IngestPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Ingest Knowledge</h1>
+    <div className="narrow-wrap">
+      <header className="mb-6">
+        <p className="page-kicker mb-2">ingest</p>
+        <h1 className="page-title">Ingest Knowledge</h1>
+      </header>
 
-      <div className="flex gap-2 mb-6">
+      <div className="mb-6 flex gap-2">
         <button
           onClick={() => setMode("text")}
-          className={`px-4 py-2 rounded ${
-            mode === "text"
-              ? "bg-white text-black"
-              : "bg-neutral-800 text-neutral-400"
-          }`}
+          type="button"
+          className="ghost-button px-4 py-2 text-sm"
+          data-active={mode === "text"}
         >
           Paste Text
         </button>
         <button
+          onClick={() => setMode("url")}
+          type="button"
+          className="ghost-button px-4 py-2 text-sm"
+          data-active={mode === "url"}
+        >
+          URL
+        </button>
+        <button
           onClick={() => setMode("file")}
-          className={`px-4 py-2 rounded ${
-            mode === "file"
-              ? "bg-white text-black"
-              : "bg-neutral-800 text-neutral-400"
-          }`}
+          type="button"
+          className="ghost-button px-4 py-2 text-sm"
+          data-active={mode === "file"}
         >
           Upload File
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="panel space-y-4 p-4">
         {mode === "text" ? (
           <>
             <input
@@ -153,7 +164,7 @@ export default function IngestPage() {
               placeholder="Title (optional)"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-3 bg-neutral-900 border border-neutral-700 rounded"
+              className="terminal-input w-full px-3 py-2.5"
             />
             <textarea
               placeholder="Paste your content here..."
@@ -161,9 +172,18 @@ export default function IngestPage() {
               onChange={(e) => setText(e.target.value)}
               rows={12}
               required
-              className="w-full p-3 bg-neutral-900 border border-neutral-700 rounded resize-y"
+              className="terminal-input w-full resize-y px-3 py-2.5"
             />
           </>
+        ) : mode === "url" ? (
+          <input
+            type="url"
+            placeholder="https://example.com/page"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            required
+            className="terminal-input w-full px-3 py-2.5"
+          />
         ) : (
           <div className="space-y-3">
             <input
@@ -183,25 +203,25 @@ export default function IngestPage() {
               className={`block cursor-pointer rounded border-2 border-dashed p-8 text-center transition ${
                 dragging
                   ? "border-white bg-neutral-900"
-                  : "border-neutral-700 bg-neutral-950 hover:border-neutral-500 hover:bg-neutral-900"
+                  : "border-neutral-700 bg-black hover:border-neutral-500 hover:bg-neutral-950"
               }`}
             >
               <span className="block font-medium text-white">
                 Drop a file here or click to browse
               </span>
-              <span className="mt-2 block text-sm text-neutral-400">
+              <span className="muted-text mt-2 block text-sm">
                 Supports TXT, Markdown, CSV, JSON, DOCX, and PDF
               </span>
             </label>
             {file && (
-              <div className="flex items-center justify-between gap-3 rounded border border-neutral-800 bg-neutral-900 px-3 py-2">
-                <p className="min-w-0 truncate text-sm text-neutral-300">
+              <div className="flex items-center justify-between gap-3 rounded border border-neutral-800 bg-black px-3 py-2">
+                <p className="muted-text min-w-0 truncate text-sm">
                   Selected: {file.name}
                 </p>
                 <button
                   type="button"
                   onClick={clearFile}
-                  className="shrink-0 text-sm text-neutral-400 hover:text-white"
+                  className="ghost-button shrink-0 px-2 py-1 text-sm"
                 >
                   Clear
                 </button>
@@ -212,30 +232,35 @@ export default function IngestPage() {
 
         <button
           type="submit"
-          disabled={loading || (mode === "text" ? !text : !file)}
-          className="w-full py-3 bg-white text-black font-medium rounded disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={
+            loading ||
+            (mode === "text" ? !text : mode === "url" ? !url : !file)
+          }
+          className="terminal-button w-full py-3"
         >
           {loading ? "Ingesting..." : "Ingest"}
         </button>
       </form>
 
       {loading && status && (
-        <div className="mt-4 flex items-center gap-2 text-neutral-400">
+        <div className="muted-text mt-4 flex items-center gap-2">
           <span className="inline-block h-3 w-3 rounded-full bg-neutral-500 animate-pulse" />
           <span className="text-sm">{status}</span>
         </div>
       )}
 
       {error && (
-        <div className="mt-6 p-4 bg-red-900/50 border border-red-700 rounded">
-          <p className="text-red-300">{error}</p>
+        <div className="danger-panel mt-6 p-4">
+          <p>{error}</p>
         </div>
       )}
 
       {result && (
-        <div className="mt-6 p-4 bg-neutral-900 border border-neutral-700 rounded">
-          <h2 className="font-medium mb-2">Ingest Result</h2>
-          <div className="prose prose-invert prose-sm max-w-none">
+        <div className="panel mt-6">
+          <div className="panel-header px-4 py-3 text-sm muted-text">
+            ingest result
+          </div>
+          <div className="markdown-body prose prose-invert prose-sm max-w-none p-5">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{result}</ReactMarkdown>
           </div>
         </div>

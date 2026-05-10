@@ -1,7 +1,11 @@
 import { streamIngestAgent } from "@/lib/agents";
 import { requireAdmin } from "@/lib/auth";
 import { agentStreamToSSE } from "@/lib/sse";
-import { saveTextSource, saveUploadedSource } from "@/lib/source-ingest";
+import {
+  saveTextSource,
+  saveUploadedSource,
+  saveUrlSource,
+} from "@/lib/source-ingest";
 
 export const runtime = "nodejs";
 
@@ -13,6 +17,7 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const text = formData.get("text") as string | null;
     const title = formData.get("title") as string | null;
+    const url = formData.get("url") as string | null;
     const file = formData.get("file") as File | null;
 
     let sourcePath: string;
@@ -24,6 +29,10 @@ export async function POST(req: Request) {
       description = savedSource.description;
     } else if (text) {
       const savedSource = saveTextSource(title, text);
+      sourcePath = savedSource.sourcePath;
+      description = savedSource.description;
+    } else if (url) {
+      const savedSource = await saveUrlSource(url);
       sourcePath = savedSource.sourcePath;
       description = savedSource.description;
     } else {

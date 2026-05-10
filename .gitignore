@@ -38,6 +38,8 @@ yarn-error.log*
 .vercel
 
 # wiki sources (may contain sensitive content)
+wiki/pages/*
+!wiki/pages/.gitkeep
 wiki/sources/*
 !wiki/sources/.gitkeep
 

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
-import Link from "next/link";
-import { LintButton } from "./lint-button";
+import { Nav } from "./nav";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -21,24 +20,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistMono.variable} h-full antialiased dark`}>
-      <body className="min-h-full flex flex-col bg-black text-white font-mono">
-        <nav className="border-b border-neutral-800 px-6 py-3 flex items-center gap-6">
-          <span className="font-bold text-lg">KB2</span>
-          <Link href="/" className="text-neutral-400 hover:text-white">
-            Query
-          </Link>
-          <Link href="/ingest" className="text-neutral-400 hover:text-white">
-            Ingest
-          </Link>
-          <Link href="/wiki" className="text-neutral-400 hover:text-white">
-            Wiki
-          </Link>
-          <Link href="/manage" className="text-neutral-400 hover:text-white">
-            Manage
-          </Link>
-          <LintButton />
-        </nav>
-        <main className="flex-1 p-6">{children}</main>
+      <body className="min-h-full font-mono">
+        <div className="app-shell flex min-h-screen flex-col">
+          <Nav />
+          <main className="flex-1 p-4 sm:p-6">{children}</main>
+        </div>
       </body>
     </html>
   );

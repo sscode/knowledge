@@ -67,43 +67,51 @@ export default function QueryPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Knowledge Base</h1>
+    <div className="narrow-wrap">
+      <header className="mb-6">
+        <p className="page-kicker mb-2">query</p>
+        <h1 className="page-title">Knowledge Base</h1>
+      </header>
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form onSubmit={handleSubmit} className="panel flex gap-2 p-2">
         <input
           type="text"
           placeholder="Ask your knowledge base..."
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          className="flex-1 p-3 bg-neutral-900 border border-neutral-700 rounded"
+          className="terminal-input min-w-0 flex-1 px-3 py-2.5"
           disabled={loading}
         />
         <button
           type="submit"
           disabled={loading || !question.trim()}
-          className="px-6 py-3 bg-white text-black font-medium rounded disabled:opacity-50 disabled:cursor-not-allowed"
+          className="terminal-button px-5 py-2.5"
         >
           {loading ? "..." : "Ask"}
         </button>
       </form>
 
       {loading && status && (
-        <div className="mt-4 flex items-center gap-2 text-neutral-400">
+        <div className="muted-text mt-4 flex items-center gap-2">
           <span className="inline-block h-3 w-3 rounded-full bg-neutral-500 animate-pulse" />
           <span className="text-sm">{status}</span>
         </div>
       )}
 
       {error && (
-        <div className="mt-6 p-4 bg-red-900/50 border border-red-700 rounded">
-          <p className="text-red-300">{error}</p>
+        <div className="danger-panel mt-6 p-4">
+          <p>{error}</p>
         </div>
       )}
 
       {answer && (
-        <div className="mt-6 p-4 bg-neutral-900 border border-neutral-700 rounded prose prose-invert prose-sm max-w-none">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{answer}</ReactMarkdown>
+        <div className="panel mt-6">
+          <div className="panel-header px-4 py-3 text-sm muted-text">
+            result
+          </div>
+          <div className="markdown-body prose prose-invert prose-sm max-w-none p-5">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{answer}</ReactMarkdown>
+          </div>
         </div>
       )}
     </div>
