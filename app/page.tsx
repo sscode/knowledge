@@ -3,7 +3,6 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { fetchWithAdminToken } from "./admin-fetch";
 
 export default function QueryPage() {
   const [question, setQuestion] = useState("");
@@ -22,7 +21,7 @@ export default function QueryPage() {
     setStatus("Starting query...");
 
     try {
-      const res = await fetchWithAdminToken("/api/query", {
+      const res = await fetch("/api/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question }),

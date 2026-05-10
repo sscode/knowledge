@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { fetchWithAdminToken } from "../admin-fetch";
 
 type Mode = "text" | "url" | "file";
 
@@ -75,7 +74,7 @@ export default function IngestPage() {
     }
 
     try {
-      const res = await fetchWithAdminToken("/api/ingest", {
+      const res = await fetch("/api/ingest", {
         method: "POST",
         body: formData,
       });

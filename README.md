@@ -64,7 +64,7 @@ Required environment variables:
 - `ANTHROPIC_API_KEY`: used by the Claude Agent SDK
 - `KB_WIKI_DIR`: optional absolute wiki storage path, useful for a Railway volume
 - `AGENTMAIL_API_KEY`: used for email ingestion
-- `KB_ADMIN_TOKEN`: required in production to protect query, ingest, and lint endpoints
+- `KB_ADMIN_TOKEN`: required in production to protect wiki management and repair endpoints
 - `AGENTMAIL_WEBHOOK_SECRET`: required in production to protect the webhook endpoint
 - `DISCORD_PUBLIC_KEY`: required for Discord interaction verification
 - `DISCORD_APP_ID`: required for registering Discord slash commands
@@ -73,7 +73,7 @@ Required environment variables:
 - `DISCORD_ALLOWED_GUILD_IDS`: optional comma-separated Discord guild allow-list
 - `DISCORD_ALLOWED_USER_IDS`: optional comma-separated Discord user allow-list
 
-In development, missing `KB_ADMIN_TOKEN` and `AGENTMAIL_WEBHOOK_SECRET` are allowed so local work stays simple. In production, the app returns an error if either secret is missing.
+In development, missing `KB_ADMIN_TOKEN` and `AGENTMAIL_WEBHOOK_SECRET` are allowed so local work stays simple. In production, management and repair endpoints return an error if `KB_ADMIN_TOKEN` is missing, and the AgentMail webhook returns an error if `AGENTMAIL_WEBHOOK_SECRET` is missing.
 
 ## Railway Deployment
 
@@ -116,7 +116,7 @@ KB_WIKI_DIR=/app/wiki-data
 
 10. Do not mount the volume at `/app/wiki`. That path contains the clean starter wiki bundled with the app, and mounting over it can hide those seed files.
 11. Deploy or redeploy the service.
-12. Open the deployment logs and confirm the service starts without `KB_ADMIN_TOKEN` or `AGENTMAIL_WEBHOOK_SECRET` errors.
+12. Open the deployment logs and confirm the service starts cleanly.
 13. In the service **Networking** settings, generate a Railway domain.
 14. Open the generated domain and test `/wiki` and `/ingest`.
 15. Use the generated domain for integrations:
@@ -210,7 +210,7 @@ x-kb-webhook-secret: YOUR_AGENTMAIL_WEBHOOK_SECRET
 
 ## Production Notes
 
-Set `KB_ADMIN_TOKEN` to a strong random value. The browser UI prompts for it after a `401` response and stores it in `localStorage` for future requests.
+Set `KB_ADMIN_TOKEN` to a strong random value. Public query and ingest do not require it. Management and repair screens prompt for it after a `401` response and store it in `localStorage` for future requests.
 
 ## Checks
 

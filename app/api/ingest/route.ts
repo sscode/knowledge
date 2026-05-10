@@ -1,5 +1,4 @@
 import { streamIngestAgent } from "@/lib/agents";
-import { requireAdmin } from "@/lib/auth";
 import { agentStreamToSSE } from "@/lib/sse";
 import {
   saveTextSource,
@@ -11,9 +10,6 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const authError = requireAdmin(req);
-    if (authError) return authError;
-
     const formData = await req.formData();
     const text = formData.get("text") as string | null;
     const title = formData.get("title") as string | null;
