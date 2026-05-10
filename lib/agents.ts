@@ -1,6 +1,5 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
-import fs from "node:fs";
-import path from "node:path";
+import { getClaudeExecutablePath } from "./claude-executable";
 import { WIKI_DIR, withWriteLock, withWriteLockStream } from "./wiki";
 import { formatSelfHealResult, runWikiSelfHeal } from "./wiki-self-heal";
 
@@ -14,32 +13,6 @@ type AgentOpts = {
 type AgentStreamEvent =
   | { type: "progress"; text: string }
   | { type: "result"; text: string };
-
-function getClaudeExecutablePath(): string | undefined {
-  const configuredPath = process.env.CLAUDE_CODE_EXECUTABLE;
-  if (configuredPath) return configuredPath;
-
-  const platformPackages =
-    process.platform === "linux"
-      ? [
-          `@anthropic-ai/claude-agent-sdk-linux-${process.arch}`,
-          `@anthropic-ai/claude-agent-sdk-linux-${process.arch}-musl`,
-        ]
-      : [`@anthropic-ai/claude-agent-sdk-${process.platform}-${process.arch}`];
-
-  for (const packageName of platformPackages) {
-    const executablePath = path.join(
-      process.cwd(),
-      "node_modules",
-      packageName,
-      process.platform === "win32" ? "claude.exe" : "claude"
-    );
-
-    if (fs.existsSync(executablePath)) return executablePath;
-  }
-
-  return undefined;
-}
 
 const claudeExecutablePath = getClaudeExecutablePath();
 

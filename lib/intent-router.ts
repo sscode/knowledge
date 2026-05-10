@@ -1,4 +1,5 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
+import { getClaudeExecutablePath } from "./claude-executable";
 
 export type KbIntent =
   | { action: "ask"; question: string }
@@ -59,6 +60,7 @@ User request: ${JSON.stringify(request)}`;
       permissionMode: "dontAsk",
       maxTurns: 1,
       maxBudgetUsd: 0.05,
+      pathToClaudeCodeExecutable: getClaudeExecutablePath(),
     },
   })) {
     if (
